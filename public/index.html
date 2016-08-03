@@ -9,12 +9,13 @@
 <body ng-app="chatApp">
   <h1>Chat Room</h1>
   <div ng-controller="ChatController as chatCtrl">
+    <h3>Users In Room:</h3>
 
     <div class="user-list-component">
-      <ul ng-if="chatCtrl.users.length === 0">
+      <ul class="users" ng-if="chatCtrl.users.length === 0">
         <li>No users in channel!</li>
       </ul>
-      <ul ng-if="chatCtrl.users.length > 0">
+      <ul class="users" ng-if="chatCtrl.users.length > 0">
         <li ng-repeat="user in chatCtrl.users track by $index">
           {{ user }}
         </li>
@@ -22,9 +23,20 @@
     </div>
 
     <div class="chat-messages-component">
+      <h3>Messages:</h3>
+      <ul class="messages">
+        <li ng-repeat="message in chatCtrl.messages track by $index">
+          {{ message }}
+        </li>
+      </ul>
     </div>
 
-    <div class="chat-input-component"></div>
+    <div class="chat-input-component">
+      <form ng-submit="chatCtrl.postMessage(chatCtrl.newMessage)">
+        Speak: <input type="text" ng-model="chatCtrl.newMessage">
+        <input type="submit" value="Send" />
+      </form>
+    </div>
   </div>  
   
   <script src="app.js"></script>

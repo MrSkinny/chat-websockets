@@ -1,12 +1,14 @@
 /*global angular io*/
 
 angular.module('chatApp', [])
-  .run(['socket', function(socket){
+  .run(['socket', '$rootScope', function(socket, $rootScope){
     let username = null;
     while (!username) {
       let input = prompt("What's your username?");
       if (input && input.length > 1) username = input;
     }
+
+    $rootScope.username = username;
     socket.emit('user-join', username);
   }])
 
@@ -15,7 +17,17 @@ angular.module('chatApp', [])
       api.getUsers().then(response => {
         this.users = response.data;
       });
+
+      api.getMessages().then(response => {
+        this.messages = response.data;
+      });
     }, 250);
+
+    this.postMessage = function(message) {
+      socket.emit('message');
+      api.postMessage(message);
+      this.newMessage = null;
+    };
 
     socket.on('user-join', (username) => {
       console.log('User joined:', username);
@@ -35,13 +47,18 @@ angular.module('chatApp', [])
       });
     });
 
+    socket.on('message', () => {
+      console.log('message event received from server');
+
+      api.getMessages().then(response => {
+        this.messages.splice(0, this.messages.length + 1);
+        this.messages.push(...response.data);
+      });
+    });
+
   }])
 
-  .controller('ChatMessages', [function ChatMessagesController() {
-
-  }])
-
-  .factory('api', ['$http', function apiFactory($http){
+  .factory('api', ['$http', '$rootScope', function apiFactory($http, $rootScope){
     return {
       getUsers() {
         return $http.get('http://localhost:3000/api/users');
@@ -49,6 +66,10 @@ angular.module('chatApp', [])
 
       getMessages() {
         return $http.get('http://localhost:3000/api/messages');
+      },
+
+      postMessage(message) {
+        return $http.post('http://localhost:3000/api/messages', {username: $rootScope.username, message});
       }
     };
   }])
